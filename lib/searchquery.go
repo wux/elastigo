@@ -81,7 +81,7 @@ func (qd *QueryDsl) MarshalJSON() ([]byte, error) {
 	}
 	// If a query has a
 	if qd.FilterVal != nil && hasQuery {
-		testB, err := json.Marshal(q.Wildcards)
+		_, err := json.Marshal(q.Wildcards)
 		if err != nil {
 			fmt.Println("MarshalJSON error", err )
 		}

@@ -52,6 +52,12 @@ type SearchDsl struct {
 	fieldReturn   []string
 }
 
+//Set Index
+func (s *SearchDsl) SetIndex(index string) *SearchDsl{
+	s.Index = index
+	return s
+}
+
 //Add for debug
 func (s *SearchDsl) Dump() {
 	query, err := Escape(s.args)
@@ -77,9 +83,11 @@ func (s *SearchDsl) Bytes(conn *Conn) ([]byte, error) {
 }
 
 func (s *SearchDsl) Result(conn *Conn) (*SearchResult, error) {
+	fmt.Println("TEst")
 	var retval SearchResult
 	body, err := s.Bytes(conn)
 	retval.RawJSON = body
+	fmt.Println(string(body))
 	if err != nil {
 		u.Errorf("%v", err)
 		return nil, err
