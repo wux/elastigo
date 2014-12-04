@@ -49,6 +49,33 @@ type SearchDsl struct {
 	SortBody      []*SortDsl               `json:"sort,omitempty"`
 	FilterVal     *FilterWrap              `json:"filter,omitempty"`
 	AggregatesVal map[string]*AggregateDsl `json:"aggregations,omitempty"`
+	fieldReturn   []string
+}
+
+//Set Index
+func (s *SearchDsl) SetIndex(index string) *SearchDsl{
+	s.Index = index
+	return s
+}
+
+//Add for debug
+func (s *SearchDsl) Dump() {
+	query, err := Escape(s.args)
+
+	if err != nil{
+		panic(err)
+	} else {
+		fmt.Println("args: " ,string(query))
+	}
+
+	body, err := json.Marshal(s)
+
+	if err != nil{
+		panic(err)
+	} else {
+		fmt.Println("body: ", string(body))
+	}
+
 }
 
 func (s *SearchDsl) Bytes(conn *Conn) ([]byte, error) {
@@ -56,9 +83,11 @@ func (s *SearchDsl) Bytes(conn *Conn) ([]byte, error) {
 }
 
 func (s *SearchDsl) Result(conn *Conn) (*SearchResult, error) {
+	fmt.Println("TEst")
 	var retval SearchResult
 	body, err := s.Bytes(conn)
 	retval.RawJSON = body
+	fmt.Println(string(body))
 	if err != nil {
 		u.Errorf("%v", err)
 		return nil, err
@@ -113,8 +142,16 @@ func (s *SearchDsl) Size(size string) *SearchDsl {
 	return s
 }
 
+func (s *SearchDsl) ReturnFields() []string{
+	return s.fieldReturn
+}
+
 func (s *SearchDsl) Fields(fields ...string) *SearchDsl {
 	s.args["fields"] = strings.Join(fields, ",")
+	if len(s.fieldReturn) == 0 {
+		s.fieldReturn = make([]string, 0)
+	}
+	s.fieldReturn = append(s.fieldReturn, fields...)
 	return s
 }
 

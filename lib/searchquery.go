@@ -64,6 +64,10 @@ type QueryEmbed struct {
 	MatchAll *MatchAll         `json:"match_all,omitempty"`
 	Terms    map[string]string `json:"term,omitempty"`
 	Qs       *QueryString      `json:"query_string,omitempty"`
+	Prefixs  map[string]string `json:"prefix,omitempty"`
+	Wildcards map[string]string  `json:"wildcard,omitempty"`
+
+
 	//Exist    string            `json:"_exists_,omitempty"`
 }
 
@@ -72,11 +76,16 @@ type QueryEmbed struct {
 func (qd *QueryDsl) MarshalJSON() ([]byte, error) {
 	q := qd.QueryEmbed
 	hasQuery := false
-	if q.Qs != nil || len(q.Terms) > 0 || q.MatchAll != nil {
+	if q.Qs != nil || len(q.Terms) > 0 || q.MatchAll != nil || len(q.Wildcards) > 0  || len(q.Prefixs) > 0 {
 		hasQuery = true
 	}
 	// If a query has a
 	if qd.FilterVal != nil && hasQuery {
+		_, err := json.Marshal(q.Wildcards)
+		if err != nil {
+			fmt.Println("MarshalJSON error", err )
+		}
+
 		queryB, err := json.Marshal(q)
 		if err != nil {
 			return queryB, err
@@ -114,8 +123,34 @@ func (q *QueryDsl) Term(name, value string) *QueryDsl {
 		q.Terms = make(map[string]string)
 	}
 	q.Terms[name] = value
+
 	return q
 }
+
+// Add a wildcard search for a specific field
+//    Wildcard("user","*mchy")
+func (q *QueryDsl) Wildcard(name string, value string) *QueryDsl {
+	//qe := q.QueryEmbed string
+	if len(q.Wildcards) == 0 {
+		q.Wildcards = make(map[string]string)
+	}
+	q.Wildcards[name] = value
+
+	return q
+}
+
+// Add a Prefix search for a specific field
+//    Prefix("user","mchy")
+func (q *QueryDsl) Prefix(name string, value string) *QueryDsl {
+	//qe := q.QueryEmbed string
+	if len(q.Prefixs) == 0 {
+		q.Prefixs = make(map[string]string)
+	}
+	q.Prefixs[name] = value
+
+	return q
+}
+
 
 // The raw search strings (lucene valid)
 func (q *QueryDsl) Search(searchFor string) *QueryDsl {
